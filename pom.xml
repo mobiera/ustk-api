@@ -39,15 +39,11 @@
          <version>1.7.6</version>
       </dependency>
       <dependency>
-         <groupId>com.mobiera</groupId>
+         <groupId>com.mobiera.libs</groupId>
          <artifactId>common-sim</artifactId>
          <version>1.0.21</version>
       </dependency>
-      <dependency>
-         <groupId>com.cloudhopper</groupId>
-         <artifactId>ch-smpp</artifactId>
-         <version>5.0.9</version>
-      </dependency>
+      
       <dependency>
          <groupId>junit</groupId>
          <artifactId>junit</artifactId>
