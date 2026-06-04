@@ -52,25 +52,69 @@ public class ResponseHelper {
 			}
 		}
 		return retval;
-		
+
 	}
-	
+
+	/**
+	 * Separator that delimits an optional <b>action result</b> extension appended
+	 * after the ustk response body, e.g. by the micro applet. The reply on the
+	 * wire is {@code <ustk response>¤A¤<token>} where {@code <token>} is
+	 * {@code <O|C><lastActionId>} (`O0`/`O1`/`O2` = OK, `C1`/`C2` = cancelled).
+	 */
+	public static String USTK_ACTION_SEPARATOR = "¤A¤";
+
+	/**
+	 * Builds the response string an applet that cannot wrap the value itself
+	 * (the micro applet) must echo back: a full double-separator ustk response
+	 * ({@code ¤U¤¤U¤<fields>}) terminated with the action separator, so that the
+	 * applet's 2-byte result token lands right after {@code ¤A¤}. Pass this as
+	 * the REPLY_APPENDIX value.
+	 */
+	public static String buildMicroResponseString(String campaignId, String endpointId, String requestId, Long adId, Long campaignScheduleId, Boolean testing) {
+		return USTK_RESPONSE_SEPARATOR + buildUstkString(campaignId, endpointId, requestId, adId, campaignScheduleId, testing) + USTK_ACTION_SEPARATOR;
+	}
+
 	public static UstkParams parseUstkString(String message) {
+		if (message == null) return null;
+
+		// Strip the optional action result extension "<base>¤A¤<token>" first, so the
+		// base (the ¤U¤¤U¤<fields> ustk response) parses exactly as without it.
+		Integer lastActionId = null;
+		UstkActionResult result = null;
+		int actionIdx = message.indexOf(USTK_ACTION_SEPARATOR);
+		if (actionIdx >= 0) {
+			String token = message.substring(actionIdx + USTK_ACTION_SEPARATOR.length());
+			message = message.substring(0, actionIdx);
+			if (token.length() >= 2) {
+				char r = token.charAt(0);
+				char d = token.charAt(1);
+				if ((r == 'O' || r == 'C') && (d >= '0' && d <= '9')) {
+					result = (r == 'C') ? UstkActionResult.CANCEL : UstkActionResult.OK;
+					lastActionId = d - '0';
+				}
+			}
+		}
+
 		String value = getUstkValue(message);
 		if (value == null) return null;
 		String[] infos = value.split("-");
+		UstkParams params = null;
 		if (infos != null) {
 			if (infos.length == 5) {
-				return UstkParams.build(infos[0], infos[1], infos[2], infos[3], infos[4], null);
+				params = UstkParams.build(infos[0], infos[1], infos[2], infos[3], infos[4], null);
 			} else if (infos.length == 6) {
 				boolean test = false;
 				if (infos[4].equals("t")) {
 					test = true;
 				}
-				return UstkParams.build(infos[0], infos[1], infos[2], infos[3], infos[4], test);
+				params = UstkParams.build(infos[0], infos[1], infos[2], infos[3], infos[4], test);
 			}
 		}
-		return null;
+		if (params != null) {
+			params.setLastActionId(lastActionId);
+			params.setResult(result);
+		}
+		return params;
 	}
 	
 	public static String SLEEPY_FLOW_SEPARATOR = "¤S¤";

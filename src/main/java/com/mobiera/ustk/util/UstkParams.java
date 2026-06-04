@@ -7,7 +7,11 @@ public class UstkParams {
 	String adId;
 	String campaignScheduleId;
 	Boolean testing;
-	
+	/* Action result extension (¤A¤ separator), e.g. micro applet replies.
+	 * Null when the response carries no action result (SAT/PICO). */
+	Integer lastActionId;
+	UstkActionResult result;
+
 	public static UstkParams build(String campaignId, String enpointId, String requestId, String adId, String campaignScheduleId, Boolean testing) {
 		
 		// ¤U¤¤U¤58129251--60568407-85353303-85453443-n
@@ -145,5 +149,21 @@ public class UstkParams {
 
 	public void setCampaignScheduleId(String campaignScheduleId) {
 		this.campaignScheduleId = campaignScheduleId;
+	}
+
+	public Integer getLastActionId() {
+		return lastActionId;
+	}
+
+	public void setLastActionId(Integer lastActionId) {
+		this.lastActionId = lastActionId;
+	}
+
+	public UstkActionResult getResult() {
+		return result;
+	}
+
+	public void setResult(UstkActionResult result) {
+		this.result = result;
 	}
 }
